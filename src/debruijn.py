@@ -1,10 +1,7 @@
-from tracemalloc import start
-from turtle import update
 import networkx as nx
 import sys
 from preprocessing import get_reads
 from collections import Counter
-import matplotlib.pyplot as plt
 
 
 class DeBruijn:
