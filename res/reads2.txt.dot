@@ -1,0 +1,10 @@
+digraph {
+CTTG;
+ACT -> CTGGC [label="ACTGGC"];
+CTGGC -> GCACG [label="CTGGCACG"];
+CTGGC -> GCC [label="CTGGCC"];
+GCT -> CTGGC [label="GCTGGC"];
+AGC -> GCACG [label="AGCACG"];
+GCACG -> CGT [label="GCACGT"];
+GCACG -> CGA [label="GCACGA"];
+}
