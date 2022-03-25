@@ -1,7 +1,6 @@
 import networkx as nx
 import sys
 from preprocessing import get_reads
-from collections import Counter
 
 
 class DeBruijn:
@@ -10,8 +9,6 @@ class DeBruijn:
         self.k = len(reads[0])
         self.graph = None
         self.dot_file = None
-
-
 
     def construct_graph(self):
         self.graph = nx.DiGraph()
@@ -46,7 +43,8 @@ class DeBruijn:
             for node in init:
                 prev_nodes = list(self.graph.predecessors(node))
                 # print("f", node, prev_nodes)
-                if len(prev_nodes) == 1 and self.graph.out_degree(prev_node := prev_nodes[0]) == 1:
+                if len(prev_nodes) == 1 and self.graph.out_degree(prev_nodes[0]) == 1:
+                    prev_node = prev_nodes[0]
                     update_content = self.graph[prev_node][node]["content"]
                     self.graph = nx.contracted_nodes(self.graph, prev_node, node, self_loops = False)
                     new_prev_node = prev_node+update_content
