@@ -104,7 +104,7 @@ class DeBruijn:
     def formulate_dot(self, read_file):
         edges = self.graph.edges
 
-        with open("./debruijn.dot", "w") as f:
+        with open(f"./res/{read_file[:-4]}_debruijn.dot", "w") as f:
             f.write("digraph {\n")
             for iso in list(nx.isolates(self.graph)):
                 f.write("{0};\n".format(iso))
