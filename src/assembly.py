@@ -1,3 +1,4 @@
+import enum
 from contamination import Contamination
 from correction import Correction
 from preprocessing import get_reads, get_score_matrix, get_vector
@@ -6,7 +7,7 @@ import sys
 '''
 global variable
 '''
-ROOT_DIR = "../test_cases/assembly/"
+ROOT_DIR = "./test_cases/assembly/"
 
 
 class Assembly:
@@ -26,6 +27,18 @@ def main(argv):
     matrix = get_score_matrix(ROOT_DIR+"unitary.m")
 
     # contamination to delete the reads
+    contam = Contamination(reads, vector, contamination_k)
+    kmer2idx_dict = contam.vector2kmer()
+    _, res_idx = contam.end_match(kmer2idx_dict)
+    
+    res_idx = set(res_idx)
+    contam_del_reads = []
+    for idx, ele in enumerate(reads):
+        if idx not in res_idx:
+            contam_del_reads.append(ele)
+    print(len(contam_del_reads), len(res_idx))
+    assert len(contam_del_reads) == len(reads)-len(res_idx)
+
 
     # deleted reads for correction
 

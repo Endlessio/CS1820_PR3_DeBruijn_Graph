@@ -3,4 +3,4 @@
 # Edit as necessary for different interpreters and/or file locations
 # Note: "$@" is functionally-equivalent to "$1 $2 $3 ..."
 # Come to hours or post on Piazza if you have questions about scripting!
-python3 src/assembly.py $1 $2 $3
+python3 src/assembly.py $1 $2 $3 $4 $5 $6 $7
