@@ -1,5 +1,5 @@
-import contamination
-import correction
+from contamination import Contamination
+from correction import Correction
 from preprocessing import get_reads, get_score_matrix, get_vector
 import sys
 
@@ -23,6 +23,7 @@ def main(argv):
     correction_d = int(argv[5])
     correction_t = int(argv[6])
     correction_mode = argv[7]
+    matrix = get_score_matrix(ROOT_DIR+"unitary.m")
 
     # contamination to delete the reads
 
