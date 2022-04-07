@@ -1,5 +1,6 @@
 import networkx as nx
 import sys
+import heapq
 from preprocessing import get_reads
 
 
@@ -20,6 +21,8 @@ class DeBruijn:
                 self.graph.edges[ele[:self.k-1], ele[1:]]["cnt"] += 1
         labels = set()
         nx.set_node_attributes(self.graph, labels, "labels")
+        # print(len(self.graph.nodes))
+        # print(len(self.graph.edges))
 
     def merge_singleton(self):
         '''
@@ -38,29 +41,46 @@ class DeBruijn:
         # print(nx.get_edge_attributes(self.graph, "content")[("CTAT","TATAC")])
         cnt = 0
         # print(list(self.graph.predecessors("CGCT")))
-        while cnt <= len(self.graph.nodes):
-            init = list(nx.dfs_preorder_nodes(self.graph))
-            for node in init:
-                prev_nodes = list(self.graph.predecessors(node))
-                # print("f", node, prev_nodes)
-                if len(prev_nodes) == 1 and self.graph.out_degree(prev_nodes[0]) == 1:
-                    prev_node = prev_nodes[0]
-                    update_content = self.graph[prev_node][node]["content"]
-                    self.graph = nx.contracted_nodes(self.graph, prev_node, node, self_loops = False)
-                    new_prev_node = prev_node+update_content
-                    self.graph = nx.relabel_nodes(self.graph, {prev_node: new_prev_node})
+        # while cnt <= len(self.graph.nodes):
+        init = list(nx.dfs_preorder_nodes(self.graph))
+        # print(init)
+        for i, node in enumerate(init):
+            # print(f'--{i}--')
+            # print("node:", node, self.graph.nodes())
+            if node not in self.graph:
+                continue
+            # print('Get predecessor')
+            prev_nodes = list(self.graph.predecessors(node))
+            # print("f", node, prev_nodes)
+            if len(prev_nodes) == 1 and self.graph.out_degree(prev_nodes[0]) == 1:
+                # print('Find Singleton ...')
+                prev_node = prev_nodes[0]
+                update_content = self.graph[prev_node][node]["content"]
+                # print(f'Graph Before Merge: Node: {len(self.graph.nodes())}, {len(self.graph.edges())}')
+                self.graph = nx.contracted_nodes(self.graph, prev_node, node, self_loops = False)
+                # print(f'Graph After Merge: Node: {len(self.graph.nodes())}, {len(self.graph.edges())}')
+                # print('Finish Merge ...')
 
-                    # update prev node in degree content
-                    for pre_prev_node in list(self.graph.predecessors(new_prev_node)):
-                        self.graph[pre_prev_node][new_prev_node]["content"] += update_content
-                    # print("check", prev_node, node)
-                    cnt = 0
-                    break
-                else:
-                    cnt += 1
+                new_prev_node = prev_node+update_content
+                # print(new_prev_node)
+                # print(prev_node)
+                self.graph = nx.relabel_nodes(self.graph, {prev_node: new_prev_node})
+                # print('Finish Relable ...')
+
+                # update prev node in degree content
+                for pre_prev_node in list(self.graph.predecessors(new_prev_node)):
+                    self.graph[pre_prev_node][new_prev_node]["content"] += update_content
+                # print('Finish Update ...')
+                # print("check", prev_node, node)
+                # cnt = 0
+                # break
+            # else:
+            #     cnt += 1
         # print(self.graph.edges)
         # nx.draw(self.graph, with_labels=True)
         # plt.show()
+    def detect_cycle(self):
+        print("detect cycle", nx.find_cycle(self.graph))
 
     def get_start_node(self):
         nodes = self.graph.nodes
@@ -74,6 +94,21 @@ class DeBruijn:
     def find_path(self, start_nodes):
         res = []
         self.imax = 0
+
+        def cycle_dfs(root, path, seen):
+            if self.graph.out_degree(root) == 0 or root in seen:
+                self.imax = max(self.imax, len(path))
+                heapq.heappush(res, (len(path), path))
+                # res.append(path)
+                return res
+
+            next_nodes = list(self.graph.successors(root))
+            seen.add(root)
+            for next in next_nodes:
+                content = self.graph[root][next]["content"]
+                # print(root, next, content)
+                cycle_dfs(next, path+content, seen)
+
         def dfs(root, path):
             if self.graph.out_degree(root) == 0:
                 self.imax = max(self.imax, len(path))
@@ -86,15 +121,43 @@ class DeBruijn:
                 # print(root, next, content)
                 dfs(next, path+content)
 
+        def stack_dfs(root, path):
+            WHITE, GRAY = 0, 1
+            stack = [(WHITE, root, path)]
+
+            while stack:
+                # print("stack", len(stack))
+                color, node, cur_path = stack.pop()
+                # print("fuck", node, cur_path)
+                if self.graph.out_degree(node) == 0:
+                    self.imax = max(self.imax, len(cur_path))
+                    res.append(cur_path)
+                    # print(res)
+                    continue
+                if color == WHITE:
+                    next_nodes = list(self.graph.successors(node))
+                    # print(next_nodes, self.graph.nodes)
+
+                    for next in next_nodes:
+                        content = self.graph[node][next]["content"]
+                        stack.append((WHITE, next, cur_path+content))
+                    stack.append((GRAY, node, cur_path))
+            # print(stack)
+            return res
+
+
+
 
         for idx, root in enumerate(start_nodes):
-            dfs(root, root)
+            # dfs(root, root)
+            cycle_dfs(root, root, set())
+
             # res.append(path)
         update_res = []
-        for ele in res:
-            if len(ele) == self.imax:
-                update_res.append(ele)
-        return sorted(update_res)
+        for length, contig in res:
+            if length == self.imax:
+                update_res.append(contig)
+        return sorted(update_res), res
 
     def print_out(self, res):
         for ele in res:
@@ -122,7 +185,7 @@ def main(argv):
     graph.construct_graph()
     graph.merge_singleton()
     start_nodes = graph.get_start_node()
-    res = graph.find_path(start_nodes)
+    res, _ = graph.find_path(start_nodes)
     graph.print_out(res)
     graph.formulate_dot(argv[1])
 

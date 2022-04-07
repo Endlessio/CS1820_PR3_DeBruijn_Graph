@@ -61,16 +61,20 @@ class Contamination:
         res_idx = []
         for idx, seq in enumerate(self.contam_read):
             # check left end
+            flag = False
             if seq[:self.k] in kmer2idx_dict:
                 imax = self.left_end_extend(seq, kmer2idx_dict[seq[:self.k]])
                 seq = seq[imax:]
+                flag = True
 
             # check right end
             if seq[-self.k:] in kmer2idx_dict:
                 imax = self.right_end_extend(seq, kmer2idx_dict[seq[-self.k:]])
                 seq = seq[:-imax]
+                flag = True
             res.append(seq)
-            res_idx.append(idx)
+            if flag:
+                res_idx.append(idx)
         return res, res_idx
 
     

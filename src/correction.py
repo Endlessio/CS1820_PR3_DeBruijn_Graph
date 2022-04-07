@@ -191,7 +191,7 @@ class Correction:
                 ele = dp_cnt[idx]
                 if imax == ele:
                     start = idx
-                    while dp_cnt[idx] == imax:
+                    while idx < length and dp_cnt[idx] == imax:
                         idx += 1
                     end = idx - 1
                     target_pos.append((start, end, imax))
@@ -258,7 +258,6 @@ class Correction:
             else:
                 res_idx.append(idx)
                 res.append(replace(target_pos, read, dp_check))
-         
 
         return res, res_idx
 

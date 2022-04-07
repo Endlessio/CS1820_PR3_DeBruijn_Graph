@@ -1,6 +1,18 @@
 import sys
 from collections import defaultdict
 
+def global_alignment(query, ref):
+    row = len(query)+1
+    col = len(ref)+1
+    dp = [[0]*col for _ in range(row)]
+    
+    for i in range(row):
+        for j in range(col):
+            if i == 0 or j == 0:
+                continue
+            dp[i][j] = max(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]+1)
+    return dp[-1][-1]
+
 
 class LocalAlignment:
     def __init__(self, seq, matrix, gap_penalty):
@@ -29,6 +41,7 @@ class LocalAlignment:
             for j in range(1,col+1):
                 char1 = seq1[i-1]
                 char2 = seq2[j-1] 
+                # print(char1, char2)
                 self.val_dp[i][j] = max(
                     self.val_dp[i-1][j-1] + self.matrix[char1][char2],
                     self.val_dp[i-1][j] + self.gap_penalty,

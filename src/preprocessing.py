@@ -1,5 +1,16 @@
 from collections import defaultdict
 
+def form_kmers(reads, k):
+    final_read = []
+    for read in reads:
+        length = len(read)
+        for i in range(0,length-k+1):
+            final_read.append(read[i:i+k])
+    return final_read
+            
+
+
+
 
 def get_reads(file):
     reads = []
@@ -30,5 +41,14 @@ def get_score_matrix(file):
                 matrix[chars[i]][chars[j]] = int(temp[i][j])
 
     return matrix
+
+
+def get_true_read(file):
+    output = ''
+    with open(file) as f:
+        lines = f.readlines()
+        for line in lines:
+            output += line.strip()
+    return output
 
 
